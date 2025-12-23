@@ -29,66 +29,116 @@ Create a HTML file to implement form based input and output.
 Publish the website in the given URL.
 
 # PROGRAM :
-<div class="container">
-    <h2>Lamp Filament Power Calculator</h2>
-    <form id="calculator-form">
-        <label for="intensity">Current Intensity (I) in Amperes:</label>
-        <input type="number" id="intensity" placeholder="Enter intensity in amperes" step="any" required>
 
-        <label for="resistance">Resistance (R) in Ohms:</label>
-        <input type="number" id="resistance" placeholder="Enter resistance in ohms" step="any" required>
-
-        <label for="power">Power (P) in Watts:</label>
-        <input type="number" id="power" placeholder="Enter power in watts" step="any" disabled>
-
-        <button type="button" onclick="calculatePower()">Calculate Power (P)</button>
-    </form>
-
-    <div class="result" id="result"></div>
-    <div class="error" id="error"></div>
-</div>
-
-<script>
-    function calculatePower() {
-        const intensity = parseFloat(document.getElementById('intensity').value);
-        const resistance = parseFloat(document.getElementById('resistance').value);
-        const power = parseFloat(document.getElementById('power').value);
-        document.getElementById('result').innerHTML = '';
-        document.getElementById('error').innerHTML = '';
-        if (isNaN(intensity) || isNaN(resistance) || intensity <= 0 || resistance <= 0) {
-            document.getElementById('error').innerHTML = 'Please enter valid positive values for intensity and resistance.';
-            return;
+!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Power Calculator</title>
+    <style type="text/css">
+        body {
+            background-color: #bdd1d3;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: cover;
+            text-align: center;
+            font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+            color:brown;
         }
-        if (!isNaN(intensity) && !isNaN(resistance) && isNaN(power)) {
-            const calculatedPower = Math.pow(intensity, 2) * resistance;
-            document.getElementById('result').innerHTML = `Power (P) = ${calculatedPower.toFixed(2)} Watts`;
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
         }
-        else if (!isNaN(intensity) && !isNaN(power) && isNaN(resistance)) {
-            const calculatedResistance = power / Math.pow(intensity, 2);
-            if (calculatedResistance <= 0) {
-                document.getElementById('error').innerHTML = 'Calculated resistance should be positive.';
-                return;
-            }
-            document.getElementById('result').innerHTML = `Resistance (R) = ${calculatedResistance.toFixed(2)} Ohms`;
+        .container {
+            background-color: #c9c4b7;
+            border-radius: 100%;
+            padding: 75px;
+            box-shadow:#1fe374;
+            display:inline-block;
+            margin-top: 100px;
         }
-        else if (!isNaN(power) && !isNaN(resistance) && isNaN(intensity)) {
-            const calculatedIntensity = Math.sqrt(power / resistance);
-            if (calculatedIntensity <= 0) {
-                document.getElementById('error').innerHTML = 'Calculated intensity should be positive.';
-                return;
-            }
-            document.getElementById('result').innerHTML = `Current Intensity (I) = ${calculatedIntensity.toFixed(2)} Amperes`;
-        } else {
-            document.getElementById('error').innerHTML = 'Please leave one input empty for calculation.';
+        label {
+            font-size: 150%;
+            display:flow-root;
+            margin: 15px 0 5px;
+            
         }
-    }
-</script>
-from django.shortcuts import render def lamp_calculator(request): intensity = None resistance = None power = None error_message = None if request.method == 'POST': try: intensity = float(request.POST.get('intensity', '')) resistance = float(request.POST.get('resistance', '')) power = float(request.POST.get('power', '')) if intensity and resistance: power = round(intensity**2 * resistance, 2) elif intensity and power: resistance = round(power / (intensity**2), 2) elif resistance and power: intensity = round((power / resistance)**0.5, 2) else: error_message = "Please enter at least two values." except ValueError: error_message = "Please enter valid numeric values." return render(request, 'lamp_calculator/index.html', { 'intensity': intensity, 'resistance': resistance, 'power': power, 'error_message': error_message, }) from django.urls import path from mathapp import views
-urlpatterns = [ path('', views.lamp_calculator, name='lamp_calculator'),
+        input[type="text"] {
+            width: calc(75% - 24px);
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid #051313;
+            margin-bottom: 15px;
+            font-size: 1em;
+        }
+        input[type="submit"] {
+            background-color: #1fe374;
+            color: rgb(211, 241, 247);
+            border: none;
+            border-radius: 10px;
+            padding: 10px 21px;
+            font-size: 1em;
+            cursor:pointer;
+        }
+        button:hover {
+            background-color: #d588b2;
+        }
+        p {
+            font-size: 1.2em;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>The Power of the Bulb</h1>
+        <form method="POST">
+            {% csrf_token %}
+        <label >Intensity (A):</label>
+        <input type="text" name="intensity" value="{{I}}">
+        
+        <label >Resistance (Ohm):</label>
+        <input type="text" name="resistance" value="{{R}}"><br><br>
+        <input type="submit" value="Calculate"><br><br>
+        <label>Power(watts):</label>
+        <input type="text" name="power" value="{{power}}">
+    </div>
+</form>        
+
+</body>
+</html>
+views.py
+
+from django.shortcuts import render
+def power_calculator(request):
+   context={}
+   context['power'] = "0"
+   context['I'] = "0"
+   context['R'] = "0"
+   if request.method == 'POST':
+      print("POST method is used")
+      I = request.POST.get('intensity','0')
+      R = request.POST.get('resistance','0')
+      print('request=',request)
+      print('resistance=',R)
+      print('intensity',I)
+      power = int(I)**2*int(R)
+      context['power'] = power
+      context['I'] = I
+      context['R'] = R
+      print('Power',power)
+   return render(request,'mathapp/math.html',context)
+urls.py
+
+from django.contrib import admin
+from django.urls import path
+from mathapp import views
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('mathapp/',views.power_calculator,name='power-calculator'),
 ]
-
-
-
 #SERVER SIDE PROCESSING:
 <img width="764" height="447" alt="image" src="https://github.com/user-attachments/assets/0fa0ae49-9056-4d4d-af1d-bd690cec492c" />
 
